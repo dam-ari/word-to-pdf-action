@@ -1,0 +1,18 @@
+name: Test Convert DOCX to PDF Action
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  convert-docx:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Convert DOCX to PDF using Custom Action
+        uses: ./.github/actions/convert-docx-to-pdf
+        with:
+          docx_file: Answer.docx
