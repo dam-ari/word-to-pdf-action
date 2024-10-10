@@ -1,4 +1,4 @@
-name: Build, Release, and Deploy Resume to GitHub Pages
+name: Build, Release, and Deploy Answer to GitHub Pages
 
 on:
   push:
@@ -46,13 +46,13 @@ jobs:
       # Step 5: Convert DOCX to PDF
       - name: Convert DOCX to PDF
         run: |
-          libreoffice --headless --convert-to pdf resume.docx --outdir .
+          libreoffice --headless --convert-to pdf Answer.docx --outdir .
         shell: bash
 
       # Step 6: Verify PDF Generation
       - name: Verify PDF File Path
         run: |
-          if [ ! -f "resume.pdf" ]; then
+          if [ ! -f "Answer.pdf" ]; then
             echo "Error: PDF file not found after conversion."
             exit 1
           fi
@@ -69,14 +69,14 @@ jobs:
       - name: Upload PDF Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: resume-${{ env.REF_NAME }}
-          path: resume.pdf  # Ensure this matches the actual file location
+          name: Answer-${{ env.REF_NAME }}
+          path: Answer.pdf  # Ensure this matches the actual file location
 
       # Step 9: Prepare Directory for GitHub Pages
       - name: Prepare Directory for GitHub Pages
         run: |
           mkdir -p public/${{ env.REF_NAME }}
-          mv resume.pdf public/${{ env.REF_NAME }}/resume.pdf
+          mv Answer.pdf public/${{ env.REF_NAME }}/Answer.pdf
         shell: bash
 
       # Step 10: Deploy to GitHub Pages
