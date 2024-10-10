@@ -14,9 +14,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Use Custom Action to Handle Entire Process
+      # Step 1: Checkout the Repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Step 2: Use Custom Action to Handle Entire Process
       - name: Word to PDF Build, Release, and Deploy
         uses: ./.github/actions/word-to-pdf-deploy
         with:
           root_folder: "."
           github_token: ${{ secrets.GITHUB_TOKEN }}
+
