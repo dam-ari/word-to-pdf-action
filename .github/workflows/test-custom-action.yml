@@ -16,12 +16,10 @@ jobs:
   convert_docx_to_pdf:
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Checkout the Repository
-      - name: Checkout Repository
+      - name: Checkout the Repository
         uses: actions/checkout@v3
 
-      # Step 2: Convert DOCX to PDF using Custom Action
-      - name: Convert DOCX to PDF
+      - name: Convert DOCX to PDF using Custom Action
         id: convert_docx
         uses: ./.github/actions/convert-docx-to-pdf
         with:
@@ -31,11 +29,9 @@ jobs:
     needs: convert_docx_to_pdf
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Checkout the Repository (IMPORTANT for Local Action)
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      # Step 2: Upload and Create Release using Custom Action
       - name: Upload and Create Release using Custom Action
         uses: ./.github/actions/upload-and-release
         with:
@@ -43,18 +39,18 @@ jobs:
           release_tag: ${{ github.ref_name }}
           release_name: "Resume Release - ${{ github.ref_name }}"
           release_body: "Automatically generated release for ${{ github.ref_name }}."
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
   deploy_to_gh_pages:
     needs: convert_docx_to_pdf
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Checkout the Repository (IMPORTANT for Local Action)
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      # Step 2: Deploy PDF to GitHub Pages using Custom Action
       - name: Deploy PDF to GitHub Pages using Custom Action
         uses: ./.github/actions/deploy-gh-pages
         with:
           branch_name: ${{ github.ref_name }}
           pdf_file: ${{ needs.convert_docx_to_pdf.outputs.pdf_file }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
