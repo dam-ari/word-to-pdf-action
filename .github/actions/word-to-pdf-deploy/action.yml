@@ -1,0 +1,80 @@
+name: "Word to PDF Build, Release, and Deploy"
+description: "Converts a DOCX file to PDF, releases it as an artifact, and deploys to GitHub Pages."
+inputs:
+  file_name:
+    description: "The DOCX file to be converted to PDF."
+    required: true
+  github_token:
+    description: "GitHub token used for deployment."
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    # Step 1: Checkout the Repository
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    # Step 2: Set up Git for committing changes
+    - name: Configure Git
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+      shell: bash
+
+    # Step 3: Extract the branch or tag name
+    - name: Get Reference
+      id: get_ref
+      run: |
+        if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+          echo "REF_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+        else
+          echo "REF_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+        fi
+      shell: bash
+
+    # Step 4: Install LibreOffice for DOCX to PDF Conversion
+    - name: Install LibreOffice
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libreoffice
+      shell: bash
+
+    # Step 5: Convert DOCX to PDF
+    - name: Convert DOCX to PDF
+      run: |
+        libreoffice --headless --convert-to pdf "${{ inputs.file_name }}" --outdir .
+      shell: bash
+
+    # Step 6: Verify PDF Generation
+    - name: Verify PDF File Path
+      run: |
+        if [ ! -f "${{ inputs.file_name%.docx}}.pdf" ]; then
+          echo "Error: PDF file not found after conversion."
+          exit 1
+        fi
+      shell: bash
+
+    # Step 7: Upload PDF Artifact
+    - name: Upload PDF Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: resume-${{ env.REF_NAME }}
+        path: ${{ inputs.file_name%.docx }}.pdf
+
+    # Step 8: Prepare Directory for GitHub Pages
+    - name: Prepare Directory for GitHub Pages
+      run: |
+        mkdir -p public/${{ env.REF_NAME }}
+        mv ${{ inputs.file_name%.docx }}.pdf public/${{ env.REF_NAME }}/resume.pdf
+      shell: bash
+
+    # Step 9: Deploy to GitHub Pages
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ inputs.github_token }}
+        publish_dir: ./public
+        keep_files: true
