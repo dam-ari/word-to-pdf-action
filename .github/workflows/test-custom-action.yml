@@ -1,88 +1,88 @@
-name: Build, Release, and Deploy Answer to GitHub Pages
+# name: Build, Release, and Deploy Answer to GitHub Pages
 
-on:
-  push:
-    branches:
-      - '**'
-    tags:
-      - 'v*'
+# on:
+#   push:
+#     branches:
+#       - '**'
+#     tags:
+#       - 'v*'
 
-permissions:
-  contents: write  # Grant write permission to push changes to the repository
+# permissions:
+#   contents: write  # Grant write permission to push changes to the repository
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
 
-    steps:
-      # Step 1: Checkout the Repository
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+#     steps:
+#       # Step 1: Checkout the Repository
+#       - name: Checkout Repository
+#         uses: actions/checkout@v3
+#         with:
+#           fetch-depth: 0
 
-      # Step 2: Set up Git for committing changes
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+#       # Step 2: Set up Git for committing changes
+#       - name: Configure Git
+#         run: |
+#           git config user.name "github-actions[bot]"
+#           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      # Step 3: Extract the branch or tag name
-      - name: Get Reference
-        id: get_ref
-        run: |
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            echo "REF_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-          else
-            echo "REF_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
-          fi
+#       # Step 3: Extract the branch or tag name
+#       - name: Get Reference
+#         id: get_ref
+#         run: |
+#           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+#             echo "REF_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+#           else
+#             echo "REF_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+#           fi
 
-      # Step 4: Install LibreOffice for DOCX to PDF Conversion
-      - name: Install LibreOffice
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libreoffice
+#       # Step 4: Install LibreOffice for DOCX to PDF Conversion
+#       - name: Install LibreOffice
+#         run: |
+#           sudo apt-get update
+#           sudo apt-get install -y libreoffice
 
-      # Step 5: Convert DOCX to PDF
-      - name: Convert DOCX to PDF
-        run: |
-          libreoffice --headless --convert-to pdf Answer.docx --outdir .
-        shell: bash
+#       # Step 5: Convert DOCX to PDF
+#       - name: Convert DOCX to PDF
+#         run: |
+#           libreoffice --headless --convert-to pdf Answer.docx --outdir .
+#         shell: bash
 
-      # Step 6: Verify PDF Generation
-      - name: Verify PDF File Path
-        run: |
-          if [ ! -f "Answer.pdf" ]; then
-            echo "Error: PDF file not found after conversion."
-            exit 1
-          fi
-        shell: bash
+#       # Step 6: Verify PDF Generation
+#       - name: Verify PDF File Path
+#         run: |
+#           if [ ! -f "Answer.pdf" ]; then
+#             echo "Error: PDF file not found after conversion."
+#             exit 1
+#           fi
+#         shell: bash
 
-      # Step 7: Debug Directory Contents (Optional but Useful)
-      - name: List Directory Contents
-        run: |
-          echo "Listing current directory contents:"
-          ls -la
-        shell: bash
+#       # Step 7: Debug Directory Contents (Optional but Useful)
+#       - name: List Directory Contents
+#         run: |
+#           echo "Listing current directory contents:"
+#           ls -la
+#         shell: bash
 
-      # Step 8: Upload PDF Artifact (for release purposes)
-      - name: Upload PDF Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: Answer-${{ env.REF_NAME }}
-          path: Answer.pdf  # Ensure this matches the actual file location
+#       # Step 8: Upload PDF Artifact (for release purposes)
+#       - name: Upload PDF Artifact
+#         uses: actions/upload-artifact@v3
+#         with:
+#           name: Answer-${{ env.REF_NAME }}
+#           path: Answer.pdf  # Ensure this matches the actual file location
 
-      # Step 9: Prepare Directory for GitHub Pages
-      - name: Prepare Directory for GitHub Pages
-        run: |
-          mkdir -p public/${{ env.REF_NAME }}
-          mv Answer.pdf public/${{ env.REF_NAME }}/Answer.pdf
-        shell: bash
+#       # Step 9: Prepare Directory for GitHub Pages
+#       - name: Prepare Directory for GitHub Pages
+#         run: |
+#           mkdir -p public/${{ env.REF_NAME }}
+#           mv Answer.pdf public/${{ env.REF_NAME }}/Answer.pdf
+#         shell: bash
 
-      # Step 10: Deploy to GitHub Pages
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
-          keep_files: true
+#       # Step 10: Deploy to GitHub Pages
+#       - name: Deploy to GitHub Pages
+#         uses: peaceiris/actions-gh-pages@v3
+#         with:
+#           github_token: ${{ secrets.GITHUB_TOKEN }}
+#           publish_dir: ./public
+#           keep_files: true
