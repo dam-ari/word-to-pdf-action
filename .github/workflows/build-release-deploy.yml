@@ -1,0 +1,22 @@
+name: Build, Release, and Deploy Resume to GitHub Pages
+
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write  # Grant write permission to push changes to the repository
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Use Custom Action to Handle Entire Process
+      - name: Word to PDF Build, Release, and Deploy
+        uses: ./.github/actions/word-to-pdf-deploy
+        with:
+          file_name: Answer.docx
+          github_token: ${{ secrets.GITHUB_TOKEN }}
