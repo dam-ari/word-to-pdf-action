@@ -1,4 +1,4 @@
-name: Build, Release, and Deploy Resume to GitHub Pages
+name: Build, Release, and Deploy Resumes to GitHub Pages
 
 on:
   push:
@@ -18,5 +18,5 @@ jobs:
       - name: Word to PDF Build, Release, and Deploy
         uses: ./.github/actions/word-to-pdf-deploy
         with:
-          file_name: Answer.docx
+          root_folder: "."
           github_token: ${{ secrets.GITHUB_TOKEN }}
