@@ -20,4 +20,6 @@ runs:
       run: |
         mkdir -p output
         libreoffice --headless --convert-to pdf --outdir output ${{ inputs.docx_file }}
-        echo "::set-output name=pdf_file::output/${{ inputs.docx_file }}.pdf"
+        echo "pdf_file=output/${{ inputs.docx_file }}.pdf" >> $GITHUB_OUTPUT
+      shell: bash
+
