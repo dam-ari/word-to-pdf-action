@@ -20,7 +20,7 @@ runs:
     - name: Prepare Directory for GitHub Pages
       run: |
         mkdir -p public/${{ inputs.branch_name }}
-        cp ${{ inputs.pdf_file }} public/${{ inputs.branch_name }}/resume.pdf
+        cp ${{ inputs.pdf_file }} public/${{ inputs.branch_name }}/${{ inputs.pdf_file }}
       shell: bash
 
     - name: Deploy to GitHub Pages
