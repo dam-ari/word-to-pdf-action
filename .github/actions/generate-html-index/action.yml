@@ -1,0 +1,32 @@
+name: "Generate or Update HTML Index"
+description: "Creates or updates an HTML index file with links to the resumes."
+inputs:
+  ref_name:
+    description: "The name of the branch or tag being deployed."
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Generate or Update HTML Index
+      run: |
+        index_file="public/index.html"
+
+        # Start the HTML file if it doesn't exist
+        if [ ! -f "$index_file" ]; then
+          echo "<html><body><h1>Available Resumes</h1><ul>" > "$index_file"
+        fi
+
+        # Add link to the new branch/tag resume
+        branch_name="${{ inputs.ref_name }}"
+        pdf_url="./$branch_name/resume.pdf"
+        echo "<li><a href=\"$pdf_url\">Resume for $branch_name</a></li>" >> "$index_file"
+
+        # Finish the HTML file (if needed)
+        if ! grep -q "</ul></body></html>" "$index_file"; then
+          echo "</ul></body></html>" >> "$index_file"
+        fi
+
+        # Remove duplicate lines to avoid duplicates if the workflow runs multiple times for the same branch/tag
+        awk '!seen[$0]++' "$index_file" > "$index_file.tmp" && mv "$index_file.tmp" "$index_file"
+      shell: bash
