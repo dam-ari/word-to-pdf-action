@@ -1,13 +1,13 @@
 name: "Convert DOCX to PDF"
-description: "A GitHub Action that converts a Word document (.docx) to PDF."
+description: "Converts a Word document (.docx) to PDF."
 author: "Damari"
 inputs:
   docx_file:
-    description: "The DOCX file to be converted to PDF"
+    description: "The DOCX file to be converted to PDF."
     required: true
 outputs:
   pdf_file:
-    description: "Path to the generated PDF file"
+    description: "Path to the generated PDF file."
 runs:
   using: "composite"
   steps:
@@ -15,6 +15,7 @@ runs:
       run: |
         sudo apt-get update
         sudo apt-get install -y libreoffice
+      shell: bash
 
     - name: Convert DOCX to PDF
       run: |
@@ -22,4 +23,3 @@ runs:
         libreoffice --headless --convert-to pdf --outdir output ${{ inputs.docx_file }}
         echo "pdf_file=output/${{ inputs.docx_file }}.pdf" >> $GITHUB_OUTPUT
       shell: bash
-
