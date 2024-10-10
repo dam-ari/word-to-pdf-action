@@ -21,10 +21,11 @@ runs:
       run: |
         mkdir -p public/${{ inputs.branch_name }}
         cp ${{ inputs.pdf_file }} public/${{ inputs.branch_name }}/resume.pdf
+      shell: bash
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        github_token: ${{ inputs.github_token }}
         publish_dir: ./public
         keep_files: true
