@@ -45,14 +45,20 @@ runs:
     # Step 5: Convert DOCX to PDF
     - name: Convert DOCX to PDF
       run: |
+        echo "Converting DOCX file: ${{ inputs.file_name }} to PDF"
         libreoffice --headless --convert-to pdf "${{ inputs.file_name }}" --outdir .
+        echo "Conversion finished, checking for output file."
+        ls -la
       shell: bash
 
     # Step 6: Verify PDF Generation
     - name: Verify PDF File Path
       run: |
-        if [ ! -f "${{ inputs.file_name%.docx}}.pdf" ]; then
-          echo "Error: PDF file not found after conversion."
+        output_pdf="${{ inputs.file_name%.docx }}.pdf"
+        if [ -f "$output_pdf" ]; then
+          echo "PDF file $output_pdf generated successfully."
+        else
+          echo "Error: PDF file $output_pdf not found after conversion."
           exit 1
         fi
       shell: bash
@@ -67,11 +73,27 @@ runs:
     # Step 8: Prepare Directory for GitHub Pages
     - name: Prepare Directory for GitHub Pages
       run: |
+        output_pdf="${{ inputs.file_name%.docx }}.pdf"
         mkdir -p public/${{ env.REF_NAME }}
-        mv ${{ inputs.file_name%.docx }}.pdf public/${{ env.REF_NAME }}/resume.pdf
+        mv "$output_pdf" public/${{ env.REF_NAME }}/resume.pdf
+        echo "Directory prepared for GitHub Pages deployment:"
+        ls -la public/${{ env.REF_NAME }}
       shell: bash
 
-    # Step 9: Deploy to GitHub Pages
+    # Step 9: Generate HTML Index File
+    - name: Generate HTML Index
+      run: |
+        index_file="public/index.html"
+        echo "<html><body><h1>Available Resumes</h1><ul>" > $index_file
+        for dir in public/*/ ; do
+          branch_name=$(basename "$dir")
+          echo "<li><a href=\"./$branch_name/resume.pdf\">Resume for $branch_name</a></li>" >> $index_file
+        done
+        echo "</ul></body></html>" >> $index_file
+        echo "HTML index generated at $index_file"
+      shell: bash
+
+    # Step 10: Deploy to GitHub Pages
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
