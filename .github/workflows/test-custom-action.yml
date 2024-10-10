@@ -1,18 +1,48 @@
-name: Test Convert DOCX to PDF Action
+name: Build, Release, and Deploy DOCX to PDF
 
 on:
   push:
     branches:
       - '**'
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write  # Required to push to the repository and create releases
 
 jobs:
-  convert-docx:
+  convert_docx_to_pdf:
     runs-on: ubuntu-latest
     steps:
+      # Step 1: Checkout the Repository
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Convert DOCX to PDF using Custom Action
+      # Step 2: Convert DOCX to PDF using Custom Action
+      - name: Convert DOCX to PDF
+        id: convert_docx
         uses: ./.github/actions/convert-docx-to-pdf
         with:
-          docx_file: Answer.docx
+          docx_file: resume.docx
+
+  upload_and_release:
+    needs: convert_docx_to_pdf
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upload and Create Release using Custom Action
+        uses: ./.github/actions/upload-and-release
+        with:
+          pdf_file: ${{ needs.convert_docx_to_pdf.outputs.pdf_file }}
+          release_tag: ${{ github.ref_name }}
+          release_name: "Resume Release - ${{ github.ref_name }}"
+          release_body: "Automatically generated release for ${{ github.ref_name }}."
+
+  deploy_to_gh_pages:
+    needs: convert_docx_to_pdf
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy PDF to GitHub Pages using Custom Action
+        uses: ./.github/actions/deploy-gh-pages
+        with:
+          branch_name: ${{ github.ref_name }}
+          pdf_file: ${{ needs.convert_docx_to_pdf.outputs.pdf_file }}

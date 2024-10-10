@@ -1,0 +1,30 @@
+name: "Deploy to GitHub Pages"
+description: "Deploys a PDF file to GitHub Pages."
+author: "Damari"
+inputs:
+  branch_name:
+    description: "The name of the branch or tag to deploy to."
+    required: true
+  pdf_file:
+    description: "Path to the PDF file to be deployed."
+    required: true
+    
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Prepare Directory for GitHub Pages
+      run: |
+        mkdir -p public/${{ inputs.branch_name }}
+        cp ${{ inputs.pdf_file }} public/${{ inputs.branch_name }}/resume.pdf
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./public
+        keep_files: true
