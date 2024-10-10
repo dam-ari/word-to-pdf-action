@@ -1,9 +1,8 @@
 name: "Upload and Create Release"
 description: "Uploads a PDF artifact and creates a GitHub Release."
-author: "Damari"
 inputs:
   pdf_file:
-    description: "Path to the PDF file to be uploaded."
+    description: "The path to the PDF file to be uploaded."
     required: true
   release_tag:
     description: "The tag for the GitHub release."
@@ -15,7 +14,10 @@ inputs:
     description: "The body content of the GitHub release."
     required: false
     default: ""
-    
+  github_token:
+    description: "GitHub token used to create a release."
+    required: true
+
 runs:
   using: "composite"
   steps:
@@ -24,16 +26,12 @@ runs:
       with:
         name: uploaded-pdf
         path: ${{ inputs.pdf_file }}
-      shell: bash
 
     - name: Create GitHub Release
-      id: create_release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ inputs.release_tag }}
         name: ${{ inputs.release_name }}
         body: ${{ inputs.release_body }}
-        draft: false
-        prerelease: false
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ inputs.github_token }}
