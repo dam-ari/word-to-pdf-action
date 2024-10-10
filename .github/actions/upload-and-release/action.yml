@@ -24,6 +24,7 @@ runs:
       with:
         name: uploaded-pdf
         path: ${{ inputs.pdf_file }}
+      shell: bash
 
     - name: Create GitHub Release
       id: create_release
