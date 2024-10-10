@@ -25,7 +25,7 @@ jobs:
         id: convert_docx
         uses: ./.github/actions/convert-docx-to-pdf
         with:
-          docx_file: resume.docx
+          docx_file: Answer.docx
 
   upload_and_release:
     needs: convert_docx_to_pdf
