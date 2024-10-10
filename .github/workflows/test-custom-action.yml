@@ -1,4 +1,4 @@
-name: Build, Release, and Deploy DOCX to PDF
+name: Build, Release, and Deploy Resume to GitHub Pages
 
 on:
   push:
@@ -8,49 +8,81 @@ on:
       - 'v*'
 
 permissions:
-  contents: write  # Required to push to the repository and create releases
-  packages: write  # Allows creating releases and uploading artifacts
-  actions: read    # Allows the workflow to read other workflows or metadata
+  contents: write  # Grant write permission to push changes to the repository
 
 jobs:
-  convert_docx_to_pdf:
+  build:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the Repository
-        uses: actions/checkout@v3
 
-      - name: Convert DOCX to PDF using Custom Action
-        id: convert_docx
-        uses: ./.github/actions/convert-docx-to-pdf
-        with:
-          docx_file: Answer.docx
-
-  upload_and_release:
-    needs: convert_docx_to_pdf
-    runs-on: ubuntu-latest
     steps:
+      # Step 1: Checkout the Repository
       - name: Checkout Repository
         uses: actions/checkout@v3
-
-      - name: Upload and Create Release using Custom Action
-        uses: ./.github/actions/upload-and-release
         with:
-          pdf_file: ${{ needs.convert_docx_to_pdf.outputs.pdf_file }}
-          release_tag: ${{ github.ref_name }}
-          release_name: "Resume Release - ${{ github.ref_name }}"
-          release_body: "Automatically generated release for ${{ github.ref_name }}."
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
-  deploy_to_gh_pages:
-    needs: convert_docx_to_pdf
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+      # Step 2: Set up Git for committing changes
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Deploy PDF to GitHub Pages using Custom Action
-        uses: ./.github/actions/deploy-gh-pages
+      # Step 3: Extract the branch or tag name
+      - name: Get Reference
+        id: get_ref
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "REF_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          else
+            echo "REF_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+          fi
+
+      # Step 4: Install LibreOffice for DOCX to PDF Conversion
+      - name: Install LibreOffice
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libreoffice
+
+      # Step 5: Convert DOCX to PDF
+      - name: Convert DOCX to PDF
+        run: |
+          libreoffice --headless --convert-to pdf resume.docx --outdir .
+        shell: bash
+
+      # Step 6: Verify PDF Generation
+      - name: Verify PDF File Path
+        run: |
+          if [ ! -f "resume.pdf" ]; then
+            echo "Error: PDF file not found after conversion."
+            exit 1
+          fi
+        shell: bash
+
+      # Step 7: Debug Directory Contents (Optional but Useful)
+      - name: List Directory Contents
+        run: |
+          echo "Listing current directory contents:"
+          ls -la
+        shell: bash
+
+      # Step 8: Upload PDF Artifact (for release purposes)
+      - name: Upload PDF Artifact
+        uses: actions/upload-artifact@v3
         with:
-          branch_name: ${{ github.ref_name }}
-          pdf_file: ${{ needs.convert_docx_to_pdf.outputs.pdf_file }}
+          name: resume-${{ env.REF_NAME }}
+          path: resume.pdf  # Ensure this matches the actual file location
+
+      # Step 9: Prepare Directory for GitHub Pages
+      - name: Prepare Directory for GitHub Pages
+        run: |
+          mkdir -p public/${{ env.REF_NAME }}
+          mv resume.pdf public/${{ env.REF_NAME }}/resume.pdf
+        shell: bash
+
+      # Step 10: Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          keep_files: true
