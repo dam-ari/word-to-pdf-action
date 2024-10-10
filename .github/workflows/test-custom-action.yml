@@ -9,6 +9,8 @@ on:
 
 permissions:
   contents: write  # Required to push to the repository and create releases
+  packages: write  # Allows creating releases and uploading artifacts
+  actions: read    # Allows the workflow to read other workflows or metadata
 
 jobs:
   convert_docx_to_pdf:
@@ -29,6 +31,11 @@ jobs:
     needs: convert_docx_to_pdf
     runs-on: ubuntu-latest
     steps:
+      # Step 1: Checkout the Repository (IMPORTANT for Local Action)
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Step 2: Upload and Create Release using Custom Action
       - name: Upload and Create Release using Custom Action
         uses: ./.github/actions/upload-and-release
         with:
@@ -41,6 +48,11 @@ jobs:
     needs: convert_docx_to_pdf
     runs-on: ubuntu-latest
     steps:
+      # Step 1: Checkout the Repository (IMPORTANT for Local Action)
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Step 2: Deploy PDF to GitHub Pages using Custom Action
       - name: Deploy PDF to GitHub Pages using Custom Action
         uses: ./.github/actions/deploy-gh-pages
         with:
